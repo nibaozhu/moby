@@ -45,7 +45,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
         set -x \
-        && git clone https://github.com/docker/distribution.git . \
+        && git clone https://ghproxy.com/github.com/docker/distribution.git . \
         && git checkout -q "$REGISTRY_VERSION" \
         && GOPATH="/go/src/github.com/docker/distribution/Godeps/_workspace:$GOPATH" \
            go build -buildmode=pie -o /build/registry-v2 github.com/docker/distribution/cmd/registry \
@@ -70,9 +70,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=tmpfs,target=/go/src/ \
         set -x \
-        && git clone https://github.com/kolyshkin/go-swagger.git . \
+        && git clone https://ghproxy.com/github.com/kolyshkin/go-swagger.git . \
         && git checkout -q "$GO_SWAGGER_COMMIT" \
-        && go build -o /build/swagger github.com/go-swagger/go-swagger/cmd/swagger
+        && GOPROXY=https://goproxy.cn,direct go build -o /build/swagger github.com/go-swagger/go-swagger/cmd/swagger
 
 FROM debian:${BASE_DEBIAN_DISTRO} AS frozen-images
 ARG DEBIAN_FRONTEND
@@ -160,7 +160,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
         case $(dpkg --print-architecture) in \
             amd64|arm64) \
-                GOBIN=/build/ GO111MODULE=on go install "github.com/go-delve/delve/cmd/dlv@${DELVE_VERSION}" \
+                GOPROXY=https://goproxy.cn,direct GOBIN=/build/ GO111MODULE=on go install "github.com/go-delve/delve/cmd/dlv@${DELVE_VERSION}" \
                 && /build/dlv --help \
                 ;; \
             *) \
@@ -178,7 +178,7 @@ FROM base AS tomll
 ARG GOTOML_VERSION=v1.8.1
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-        GOBIN=/build/ GO111MODULE=on go install "github.com/pelletier/go-toml/cmd/tomll@${GOTOML_VERSION}" \
+        GOPROXY=https://goproxy.cn,direct GOBIN=/build/ GO111MODULE=on go install "github.com/pelletier/go-toml/cmd/tomll@${GOTOML_VERSION}" \
      && /build/tomll --help
 
 FROM base AS gowinres
@@ -186,7 +186,7 @@ FROM base AS gowinres
 ARG GOWINRES_VERSION=v0.2.3
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-        GOBIN=/build/ GO111MODULE=on go install "github.com/tc-hib/go-winres@${GOWINRES_VERSION}" \
+        GOPROXY=https://goproxy.cn,direct GOBIN=/build/ GO111MODULE=on go install "github.com/tc-hib/go-winres@${GOWINRES_VERSION}" \
      && /build/go-winres --help
 
 FROM dev-base AS containerd
@@ -205,21 +205,21 @@ FROM base AS golangci_lint
 ARG GOLANGCI_LINT_VERSION=v1.46.2
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-        GOBIN=/build/ GO111MODULE=on go install "github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}" \
+        GOPROXY=https://goproxy.cn,direct GOBIN=/build/ GO111MODULE=on go install "github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}" \
      && /build/golangci-lint --version
 
 FROM base AS gotestsum
 ARG GOTESTSUM_VERSION=v1.8.1
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-        GOBIN=/build/ GO111MODULE=on go install "gotest.tools/gotestsum@${GOTESTSUM_VERSION}" \
+        GOPROXY=https://goproxy.cn,direct GOBIN=/build/ GO111MODULE=on go install "gotest.tools/gotestsum@${GOTESTSUM_VERSION}" \
      && /build/gotestsum --version
 
 FROM base AS shfmt
 ARG SHFMT_VERSION=v3.0.2
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-        GOBIN=/build/ GO111MODULE=on go install "mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION}" \
+        GOPROXY=https://goproxy.cn,direct GOBIN=/build/ GO111MODULE=on go install "mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION}" \
      && /build/shfmt --version
 
 FROM dev-base AS dockercli
@@ -281,7 +281,7 @@ RUN --mount=type=cache,sharing=locked,id=moby-crun-aptlib,target=/var/lib/apt \
             python3 \
             ;
 RUN --mount=type=tmpfs,target=/tmp/crun-build \
-    git clone https://github.com/containers/crun.git /tmp/crun-build && \
+    git clone https://ghproxy.com/github.com/containers/crun.git /tmp/crun-build && \
     cd /tmp/crun-build && \
     git checkout -q "${CRUN_VERSION}" && \
     ./autogen.sh && \
